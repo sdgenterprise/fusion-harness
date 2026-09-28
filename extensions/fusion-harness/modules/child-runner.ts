@@ -10,10 +10,41 @@
 import { spawn } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import { performance } from "node:perf_hooks";
 import { briefArg, runOk, type AgentRun } from "./runtime.ts";
 
 const KILL_GRACE_MS = 5_000; // SIGTERM → SIGKILL escalation window
+
+
+/**
+ * Child extensions — this fork's single deviation from upstream's clean room.
+ * Children load self-compact as a NEAR-WALL escape hatch (soft 50% / forced
+ * 75%): a long writer finishes via compaction instead of silently truncating.
+ * Resolution: FH_CHILD_EXTENSIONS=off → clean room | =<p>[:<p>…] → explicit |
+ * sibling autodetect (pi-agent-layer layout) | --no-extensions (upstream).
+ * NEVER point this at fusion-harness.ts — the recursion guard still stands.
+ */
+const CHILD_COMPACT_FLAGS = ["--compact-soft-at", "50%", "--compact-at", "75%", "--compact-buffer", "10%"];
+const SIBLING_SELF_COMPACT =
+	"../../../../self-compact-pi-agent/apps/self-compact/extensions/self-compact/self-compact.ts";
+
+function resolveChildExtensions(): { extArgs: string[]; flagArgs: string[] } {
+	const envExtsRaw = process.env.FH_CHILD_EXTENSIONS ?? "";
+	if (envExtsRaw.trim().toLowerCase() === "off") return { extArgs: ["--no-extensions"], flagArgs: [] };
+	const envFlags = (process.env.FH_CHILD_FLAGS ?? "").split(" ").map((s) => s.trim()).filter(Boolean);
+	const envExts = envExtsRaw.split(":").map((s) => s.trim()).filter(Boolean);
+	if (envExts.length) return { extArgs: envExts.flatMap((ext) => ["-e", ext]), flagArgs: envFlags };
+	try {
+		const sibling = fileURLToPath(new URL(SIBLING_SELF_COMPACT, import.meta.url));
+		if (fs.existsSync(sibling)) {
+			return { extArgs: ["-e", sibling], flagArgs: envFlags.length ? envFlags : CHILD_COMPACT_FLAGS };
+		}
+	} catch {
+		/* not in the layer layout — clean room */
+	}
+	return { extArgs: ["--no-extensions"], flagArgs: [] };
+}
 
 /** Locate the running pi binary so we can re-invoke it as a child. */
 export function piInvocation(args: string[]): { command: string; args: string[] } {
@@ -61,7 +92,7 @@ export function runChild(opts: {
 		"--session-dir",
 		opts.sessionDir,
 		"--no-skills",
-		"--no-extensions",
+		...childExts.extArgs,
 		"--no-context-files",
 		"--thinking",
 		opts.thinking,
@@ -81,6 +112,7 @@ export function runChild(opts: {
 	}
 	if (opts.tools === "none") args.push("--no-tools");
 	else args.push("--tools", opts.tools);
+	args.push(...childExts.flagArgs);
 	args.push(opts.prompt);
 
 	return new Promise<AgentRun>((resolve) => {
