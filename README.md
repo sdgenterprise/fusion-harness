@@ -279,9 +279,29 @@ Every run writes an inspectable `/tmp/fusion-harness-*` directory with `stack.js
 
 ```bash
 npm run test:fusion-harness     # deterministic unit/contract tests
+just jev-test                   # jev extension unit tests (offline)
+just compose-test               # fusion-harness + jev + self-compact in one pi process (offline)
 ```
 
 Live validation prompts are checked in under `prompts/duckdb/`, ordered simple to complex and centered on the [DuckDB v2.0 preview](https://duckdb.org/2026/08/17/duckdb-20-highlights).
+
+---
+
+## jev — cheap typed decisions inside the stack
+
+`extensions/jev/jev.ts` puts [Jev](https://github.com/disler/ten-levels-of-jev) (TypeSafe's System One decision model: JSON state in, typed `noul`/`choice`/`score` answers with probabilities out, ~300 ms, fractions of a cent) between the harness and self-compact. It is loaded by the `*-compact` recipes, between fusion-harness and self-compact:
+
+```bash
+just direct-compact   # or: fusion-compact / fh-stack-compact <stack.yaml>
+```
+
+Three features, each disableable with `--jev-guard=off`, `--jev-reads=off`, `--jev-timing=off` (`--jev=off` for all):
+
+- **Guardrails** — a `tool_call` gate asks Jev what every bash command does (read-only / reversible / irreversible + destructive intent) and blocks with a final, no-workaround notice; write/edit content is screened for real credentials; read/bash output is screened for injected instructions and bannered as data.
+- **Cheap reads** — `ask_jev_file_bool` / `ask_jev_file_choice` / `ask_jev_file_score` tools answer a judgment ABOUT a file without the file ever entering the host's context (which also means fewer self-compact cycles on a 1M-window host).
+- **Compaction timing** — inside self-compact's warning band, four Jev questions per turn judge checkpoint quality (task switch / clean boundary / mid-operation / history needed); a clean checkpoint surfaces a transient `[jev · checkpoint]` advisory naming `self_compact`, and at compaction one Jev choice picks which turn the live work starts from and folds it into the summary instructions.
+
+Every hook fails open (a Jev outage never blocks the session), guards never run past self-compact's forced line (its lock owns that state), and fusion's clean-room children never see Jev. `/jev` shows calls, estimated cost, blocks, and advisories. Uses `OPENROUTER_API_KEY`; `--jev-backend mock` runs everything offline with safe canned answers.
 
 ---
 

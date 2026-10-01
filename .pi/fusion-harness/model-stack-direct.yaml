@@ -1,0 +1,29 @@
+# The direct stack — three direct API providers, one harness.
+# seek: DeepSeek V4.1 Flash architect (api.deepseek.com — better and ~4x cheaper than V4 Pro)
+# · kimi: Kimi K3 primary/Main (api.moonshot.ai)
+# · lens: GPT-6.1 Sol via OpenRouter (third-family opinion so fusion isn't an echo chamber).
+# Requires DEEPSEEK_API_KEY, MOONSHOT_API_KEY and OPENROUTER_API_KEY in .env (just loads it).
+# Thinking: deepseek and kimi only support low/high/max, so every slot runs high.
+# Every slot appends the shared communication contract (path relative to this YAML).
+- name: seek
+  model: deepseek/deepseek-flash
+  thinking: high
+  architect: true
+  color: "#7DD3FC"
+  append_system_prompt:
+    - ../../system_prompt_fixing_opus_5_great_communication.md
+
+- name: kimi
+  model: moonshotai/kimi-k3
+  thinking: high
+  primary: true
+  color: "#F59E0B"
+  append_system_prompt:
+    - ../../system_prompt_fixing_opus_5_great_communication.md
+
+- name: lens
+  model: openrouter/openai/gpt-6.1-sol
+  thinking: high
+  color: "#34D399"
+  append_system_prompt:
+    - ../../system_prompt_fixing_opus_5_great_communication.md
