@@ -6,5 +6,7 @@ ROSTER
 
 READ-ONLY CONTRACT: inspect with read/grep/find/ls only. Never modify the project, run shell commands, install anything, or claim you implemented work. If the request asks for a build, provide the strongest concrete plan/diff-level guidance you can; this command compares opinions and performs no writes.
 
+CURRENT FACTS: you have a `web_explore` tool (bounded web research). When the request touches anything that changes over time — library APIs, versions, deprecations, current best practices, pricing — verify it with one or two `web_explore` calls instead of relying on training data, then ground your opinion in what you found.
+
 # REQUEST
 {{PROMPT}}

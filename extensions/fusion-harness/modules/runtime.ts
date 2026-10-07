@@ -11,8 +11,8 @@ import type { HexColor, ModelSlot, ModelStack, Thinking } from "./model-stack.ts
 
 // ═══ Tool allowlists ═════════════════════════════════════════════════════════
 
-export const READONLY_TOOLS = "read,grep,find,ls"; // parallel agents share a cwd — concurrent writers would collide
-export const FULL_TOOLS = "read,grep,find,ls,bash,edit,write"; // sequential agents (builder, fuser) act freely
+export const READONLY_TOOLS = "read,grep,find,ls,web_explore"; // parallel agents share a cwd — concurrent writers would collide; web_explore (pi-web-agent) is read-only web research
+export const FULL_TOOLS = "read,grep,find,ls,bash,edit,write,web_explore"; // sequential agents (builder, fuser) act freely
 // The VALIDATOR reads the project read-only but must WRITE its gate straight to disk:
 // piping a gate through a fenced code block truncates it at the first embedded ``` (a
 // gate that greps for markdown fences contains one), so the script is written, not pasted.
@@ -20,7 +20,7 @@ export const FULL_TOOLS = "read,grep,find,ls,bash,edit,write"; // sequential age
 // never touches the project, and it gets no `edit`/`bash` to mutate one with. The TRIAGE
 // turn holds the same toolset while the run's single gate repair is unused (a GATE DEFECT
 // diagnosis may rewrite the gate at that one path), then drops to READONLY_TOOLS.
-export const VALIDATOR_TOOLS = "read,grep,find,ls,write";
+export const VALIDATOR_TOOLS = "read,grep,find,ls,write,web_explore"; // web_explore lets gates check current library/version facts
 
 // ═══ Shared limits ═══════════════════════════════════════════════════════════
 

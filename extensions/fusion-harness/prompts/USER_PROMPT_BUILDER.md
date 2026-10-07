@@ -10,6 +10,9 @@ An ACCEPTANCE GATE already exists: the immutable uv Python script below runs aut
 {{GATE_SCRIPT}}
 ```
 
+# CURRENT FACTS
+You have a `web_explore` tool (bounded web research). When the request depends on time-sensitive facts — library APIs, versions, deprecations, current best practices — verify them with one or two `web_explore` calls and build against the current docs, not training data.
+
 # DESIGN SYSTEM
 If the request produces any frontend/UI code (HTML, CSS, components, pages), apply the `od-dashboard` skill: read its SKILL.md (advertised in your available skills, installed at ~/.agents/skills/od-dashboard/) and follow its rules — copy its tokens.css into the project before writing any component CSS, reference tokens instead of raw hex values, and reuse its component recipes.
 
