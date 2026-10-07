@@ -12,7 +12,7 @@ import type { HexColor, ModelSlot, ModelStack, Thinking } from "./model-stack.ts
 // ═══ Tool allowlists ═════════════════════════════════════════════════════════
 
 export const READONLY_TOOLS = "read,grep,find,ls,web_explore"; // parallel agents share a cwd — concurrent writers would collide; web_explore (pi-web-agent) is read-only web research
-export const FULL_TOOLS = "read,grep,find,ls,bash,edit,write,web_explore"; // sequential agents (builder, fuser) act freely
+export const FULL_TOOLS = "read,grep,find,ls,bash,edit,write,web_explore,mcp__playwright__*"; // sequential agents (builder, fuser) act freely; the playwright glob also makes child-runner load built-in MCP support
 // The VALIDATOR reads the project read-only but must WRITE its gate straight to disk:
 // piping a gate through a fenced code block truncates it at the first embedded ``` (a
 // gate that greps for markdown fences contains one), so the script is written, not pasted.

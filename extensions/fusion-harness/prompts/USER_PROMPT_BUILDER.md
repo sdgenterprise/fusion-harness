@@ -10,6 +10,9 @@ An ACCEPTANCE GATE already exists: the immutable uv Python script below runs aut
 {{GATE_SCRIPT}}
 ```
 
+# BROWSER VERIFICATION
+You have Playwright browser tools (browser_navigate, browser_resize, browser_take_screenshot, browser_click, browser_evaluate, and friends). If the request produces a web UI, verify the render before finishing: serve/run it locally, navigate to it, take a desktop screenshot (resize to ~1440x900) and a mobile screenshot (~390x844), inspect both for layout breaks and console errors (browser_console_messages), fix what you find, and close the browser when done.
+
 # CURRENT FACTS
 You have a `web_explore` tool (bounded web research). When the request depends on time-sensitive facts — library APIs, versions, deprecations, current best practices — verify them with one or two `web_explore` calls and build against the current docs, not training data.
 

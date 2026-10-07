@@ -99,6 +99,10 @@ export function runChild(opts: {
 	// Punch the resource holes for every tool-enabled child (ACK turns run --no-tools
 	// and need neither web research nor design skills).
 	if (opts.tools !== "none") args.push(...cleanRoomResourceArgs());
+	// MCP support is a built-in extension, so --no-extensions disables it too. Any
+	// toolset that names MCP tools (mcp__*) gets it back via -e builtin:mcp — the
+	// explicit-path hole that loads despite --no-extensions.
+	if (opts.tools !== "none" && opts.tools.includes("mcp__")) args.push("-e", "builtin:mcp");
 	// Session identity, in precedence order: fork the host > resume an earlier fork > pinned per-role id.
 	if (opts.fork) args.push("--fork", opts.fork);
 	else if (opts.resume) args.push("--session", opts.resume);
