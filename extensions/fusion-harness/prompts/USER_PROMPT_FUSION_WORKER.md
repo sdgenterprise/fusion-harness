@@ -12,6 +12,8 @@ STRICT READ-ONLY CONTRACT:
 
 CURRENT FACTS: you have a `web_explore` tool (bounded web research). When the request depends on time-sensitive facts — library APIs, versions, deprecations, current best practices — verify them with one or two `web_explore` calls and ground your guidance in the current sources, not training data.
 
+DESIGN CRAFT: if the request is about UI/design quality, the `impeccable` skill is advertised in your available skills (fallback path: ~/.agents/skills/impeccable/SKILL.md) — read its SKILL.md and the reference it routes to. You have no bash, so skip its `impeccable context` launcher step and use the skill's launcher-unavailable fallback (read PRODUCT.md / DESIGN.md directly when present).
+
 Your full response is captured by the harness in a private per-slot artifact; do not create an artifact yourself.
 
 # REQUEST

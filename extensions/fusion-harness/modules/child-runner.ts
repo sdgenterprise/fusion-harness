@@ -9,11 +9,39 @@
 
 import { spawn } from "node:child_process";
 import * as fs from "node:fs";
+import * as os from "node:os";
 import * as path from "node:path";
 import { performance } from "node:perf_hooks";
 import { briefArg, runOk, type AgentRun } from "./runtime.ts";
 
 const KILL_GRACE_MS = 5_000; // SIGTERM → SIGKILL escalation window
+
+// ── Clean-room resource holes ────────────────────────────────────────────────
+// The clean-room flags exist so children never re-load fusion-harness itself (recursion)
+// or pick up stray project config. Explicit -e / --skill paths load even with
+// --no-extensions / --no-skills, so we punch exactly two holes: the pi-web-agent
+// extension (gives every tool-enabled child web_explore for bounded web research)
+// and the globally installed design skills (advertised in the system prompt;
+// content loads on demand via read, which every child has).
+const PI_WEB_AGENT_EXT = path.join(
+	os.homedir(),
+	".pi/agent/npm/node_modules/@demigodmode/pi-web-agent/dist/extension.js",
+);
+const GLOBAL_SKILL_DIRS = ["od-dashboard", "impeccable"].map((name) =>
+	path.join(process.env.PI_SKILLS_DIR ?? path.join(os.homedir(), ".agents/skills"), name),
+);
+
+let cachedResourceArgs: string[] | null = null;
+function cleanRoomResourceArgs(): string[] {
+	if (cachedResourceArgs) return cachedResourceArgs;
+	const args: string[] = [];
+	if (fs.existsSync(PI_WEB_AGENT_EXT)) args.push("-e", PI_WEB_AGENT_EXT);
+	for (const dir of GLOBAL_SKILL_DIRS) {
+		if (fs.existsSync(path.join(dir, "SKILL.md"))) args.push("--skill", dir);
+	}
+	cachedResourceArgs = args;
+	return args;
+}
 
 /** Locate the running pi binary so we can re-invoke it as a child. */
 export function piInvocation(args: string[]): { command: string; args: string[] } {
@@ -68,6 +96,9 @@ export function runChild(opts: {
 		"--model",
 		run.model,
 	];
+	// Punch the resource holes for every tool-enabled child (ACK turns run --no-tools
+	// and need neither web research nor design skills).
+	if (opts.tools !== "none") args.push(...cleanRoomResourceArgs());
 	// Session identity, in precedence order: fork the host > resume an earlier fork > pinned per-role id.
 	if (opts.fork) args.push("--fork", opts.fork);
 	else if (opts.resume) args.push("--session", opts.resume);
